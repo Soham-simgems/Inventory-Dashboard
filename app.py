@@ -121,11 +121,12 @@ elif page == "Inventory":
         # Function to load file and add location column
         def load_and_add_location(file, location_name):
             if file.name.endswith(".csv"):
-                data = pd.read_csv(file)
+                data = pd.read_csv(file, header=1, skipfooter=5)  # Specify header row as 2nd row (index 1)
             else:
-                data = pd.read_excel(file)
+                data = pd.read_excel(file, header=1, skipfooter=5)  # Specify header row as 2nd row (index 1)
             data["Location"] = location_name  # Add Location column based on the country name
             return data
+
 
         if uploaded_hk_file:
             inventory_data["HK"] = load_and_add_location(uploaded_hk_file, "HK")
@@ -142,7 +143,7 @@ elif page == "Inventory":
 
         for country, data in inventory_data.items():
             # Check required columns in inventory data
-            required_columns = ["Item CD", "Not for Web", "Legends", "Location"]
+            required_columns = ["Item CD", "Notfor Web", "Legends", "Location"]
             if all(col in data.columns for col in required_columns):
                 # Standardize Legends Column
                 def classify_legends(legend):
@@ -160,17 +161,17 @@ elif page == "Inventory":
                 # Calculate Summary
                 summary[country] = {
                     "Total Stones": data["Item CD"].count(),
-                    "NFW Memo": data[(data["Not for Web"] == True) & (data["Legends"] == "Memo out")]["Item CD"].count(),
-                    "NFW Available": data[(data["Not for Web"] == True) & (data["Legends"] == "Memo in")]["Item CD"].count(),
+                    "NFW Memo": data[(data["Notfor Web"] == True) & (data["Legends"] == "Memo out")]["Item CD"].count(),
+                    "NFW Available": data[(data["Notfor Web"] == True) & (data["Legends"] == "Memo in")]["Item CD"].count(),
                     "On Hold": data[data["Legends"] == "On hold"]["Item CD"].count(),
                     "Memo In": data[data["Legends"] == "Memo in"]["Item CD"].count(),
                     "Memo Out": data[data["Legends"] == "Memo out"]["Item CD"].count(),
-                    "NFW": data[data["Not for Web"] == True]["Item CD"].count(),
-                    "For Web": data[data["Not for Web"] == False]["Item CD"].count(),
+                    "NFW": data[data["Notfor Web"] == True]["Item CD"].count(),
+                    "For Web": data[data["Notfor Web"] == False]["Item CD"].count(),
                 }
 
                 # Calculate For Web Summary Breakdown
-                for_web_data = data[data["Not for Web"] == False]  # Filter data where "Not for Web" is False
+                for_web_data = data[data["Notfor Web"] == False]  # Filter data where "Notfor Web" is False
                 for_web_summary = for_web_data.groupby("Legends")["Item CD"].count()
                 for_web_summary_combined[country] = for_web_summary
 
@@ -223,9 +224,9 @@ elif page == "Inventory":
                         # For "Total Stones", display all data for the location
                         filtered_data = inventory_data[location]  # No filtering, just show all data
                     elif column == "NFW Memo":
-                        filtered_data = inventory_data[location][(inventory_data[location]["Not for Web"] == True) & (inventory_data[location]["Legends"] == "Memo out")]
+                        filtered_data = inventory_data[location][(inventory_data[location]["Notfor Web"] == True) & (inventory_data[location]["Legends"] == "Memo out")]
                     elif column == "NFW Available":
-                        filtered_data = inventory_data[location][(inventory_data[location]["Not for Web"] == True) & (inventory_data[location]["Legends"] == "Memo in")]
+                        filtered_data = inventory_data[location][(inventory_data[location]["Notfor Web"] == True) & (inventory_data[location]["Legends"] == "Memo in")]
                     elif column == "On Hold":
                         filtered_data = inventory_data[location][inventory_data[location]["Legends"] == "On hold"]
                     elif column == "Memo In":
@@ -233,9 +234,9 @@ elif page == "Inventory":
                     elif column == "Memo Out":
                         filtered_data = inventory_data[location][inventory_data[location]["Legends"] == "Memo out"]
                     elif column == "NFW":
-                        filtered_data = inventory_data[location][inventory_data[location]["Not for Web"] == True]
+                        filtered_data = inventory_data[location][inventory_data[location]["Notfor Web"] == True]
                     elif column == "For Web":
-                        filtered_data = inventory_data[location][inventory_data[location]["Not for Web"] == False]
+                        filtered_data = inventory_data[location][inventory_data[location]["Notfor Web"] == False]
                     else:
                         filtered_data = pd.DataFrame()
 
